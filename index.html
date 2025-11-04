@@ -252,11 +252,9 @@
   <script>
     let notificationSent = false;
 
-    const broker = "broker.hivemq.com";
-    const port = 8884;
     const topic = "smartbin/office1/level";
     const clientId = "webclient_" + Math.random().toString(16).substr(2, 8);
-    const client = new Paho.MQTT.Client(broker, port, "/mqtt", clientId);
+    const client = new Paho.MQTT.Client("wss://broker.hivemq.com:8884/mqtt", clientId);
 
     client.onConnectionLost = () => {
       document.getElementById("status").innerText = "Connection lost... reconnecting 🔄";
