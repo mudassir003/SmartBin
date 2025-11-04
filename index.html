@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Waste Management Dashboard</title>
+
+  <!-- ✅ PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#4CAF50" />
+  <link rel="icon" href="icons/icon-192.png" />
+
+  <!-- ✅ Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #c8e6c9, #e8f5e9, #f1f8e9);
+      text-align: center;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      animation: bgShift 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgShift {
+      from { background-position: left; }
+      to { background-position: right; }
+    }
+
+    h1 {
+      font-weight: 600;
+      color: #1b5e20;
+      font-size: 2em;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .subtitle {
+      color: #555;
+      margin-bottom: 35px;
+      font-size: 15px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(14px);
+      border-radius: 25px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+      padding: 35px 25px;
+      width: 360px;
+      text-align: center;
+      animation: fadeIn 1.2s ease;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dustbin {
+      position: relative;
+      width: 150px;
+      height: 180px;
+      margin: 20px auto;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .fill {
+      transition: height 1s ease, y 1s ease;
+      fill: url(#grad);
+    }
+
+    /* Gradient fill animation */
+    @keyframes wave {
+      from { transform: translateY(0); }
+      to { transform: translateY(-3px); }
+    }
+
+    .percent {
+      font-size: 36px;
+      font-weight: 600;
+      margin-top: 10px;
+      color: #2e7d32;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .status {
+      font-size: 14px;
+      color: #444;
+      margin-bottom: 10px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .data-display {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    }
+
+    .data-item {
+      background: linear-gradient(135deg, #f1f8e9, #ffffff);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #333;
+      transition: transform 0.3s;
+    }
+
+    .data-item:hover {
+      transform: scale(1.05);
+    }
+
+    .icon {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
+    #installBtn, #testAlertBtn {
+      background: linear-gradient(45deg, #4caf50, #2e7d32);
+      border: none;
+      color: #fff;
+      padding: 10px 25px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    #installBtn:hover, #testAlertBtn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(45deg, #43a047, #1b5e20);
+    }
+
+    #testAlertBtn {
+      background: linear-gradient(45deg, #ff9800, #ef6c00);
+    }
+
+    footer {
+      margin-top: 25px;
+      color: #777;
+      font-size: 13px;
+    }
+
+    .alert-popup {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ff4444;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      z-index: 1000;
+      display: none;
+      animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .alert-popup.show {
+      display: block;
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
+
+  <script src="paho-mqtt.js"></script>
+</head>
+<body>
+  <h1>Smart Waste Dashboard</h1>
+  <div class="subtitle">♻️ IoT-Based Real-Time Bin Monitoring 🌍</div>
+
+  <div class="card">
+    <div class="status" id="status">Connecting to MQTT...</div>
+
+    <!-- 🗑️ Dustbin Animation -->
+    <div class="dustbin">
+      <svg viewBox="0 0 150 200">
+        <defs>
+          <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#66bb6a">
+              <animate attributeName="stop-color" values="#66bb6a;#81c784;#66bb6a" dur="4s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="100%" stop-color="#2e7d32">
+              <animate attributeName="stop-color" values="#2e7d32;#388e3c;#2e7d32" dur="4s" repeatCount="indefinite"/>
+            </stop>
+          </linearGradient>
+        </defs>
+        <rect x="35" y="50" width="80" height="130" rx="10" ry="10" fill="#c8e6c9" stroke="#2e7d32" stroke-width="3"/>
+        <rect class="fill" id="fillRect" x="35" y="180" width="80" height="0" rx="10" ry="10"/>
+        <rect x="25" y="35" width="100" height="15" rx="5" ry="5" fill="#2e7d32"/>
+      </svg>
+    </div>
+
+    <div class="percent" id="percentText">--%</div>
+    <div class="data-container">
+      <div class="data-display" id="dataDisplay">
+        <div class="data-item"><span class="icon">📏</span> Distance: -- cm</div>
+        <div class="data-item"><span class="icon">📊</span> Fill Level: --%</div>
+        <div class="data-item"><span class="icon">🌐</span> IP: --</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert-popup" id="alertPopup">
+    <strong>🚨 Bin Alert!</strong><br>
+    Bin is 75% full! Time to empty it.
+  </div>
+
+  <button id="installBtn" hidden>📲 Install App</button>
+
+  <footer>Powered by NodeMCU + Ultrasonic Sensor + MQTT</footer>
+
+  <script>
+    let notificationSent = false;
+
+    const broker = "broker.hivemq.com";
+    const port = 8000;
+    const topic = "smartbin/office1/level";
+    const clientId = "webclient_" + Math.random().toString(16).substr(2, 8);
+    const client = new Paho.MQTT.Client(broker, port, "/mqtt", clientId);
+
+    client.onConnectionLost = () => {
+      document.getElementById("status").innerText = "Connection lost... reconnecting 🔄";
+      setTimeout(connectMqtt, 3000);
+    };
+
+    client.onMessageArrived = (message) => {
+      const payload = JSON.parse(message.payloadString);
+      const percent = payload.fill_pct || payload.fillPercentage || 0;
+      const distance = payload.distance_cm || -1;
+      const ip = payload.ip || "--";
+
+      updateDustbin(percent);
+      updateDataDisplay(distance, percent, ip);
+      document.getElementById("status").innerText = "Last update: " + new Date().toLocaleTimeString();
+
+      if (percent >= 75 && !notificationSent) {
+        showNotification();
+        showAlertPopup();
+        notificationSent = true;
+      } else if (percent < 75) {
+        notificationSent = false;
+        hideAlertPopup();
+      }
+    };
+
+    function connectMqtt() {
+      client.connect({
+        onSuccess: () => {
+          document.getElementById("status").innerText = "Connected ✅ Subscribed to topic";
+          client.subscribe(topic);
+        },
+        onFailure: () => {
+          document.getElementById("status").innerText = "Failed to connect ❌ Retrying...";
+          setTimeout(connectMqtt, 4000);
+        }
+      });
+    }
+
+    function updateDustbin(percent) {
+      const fillRect = document.getElementById("fillRect");
+      const percentText = document.getElementById("percentText");
+      percentText.textContent = percent.toFixed(1) + "%";
+      const p = Math.max(0, Math.min(100, percent));
+      const maxHeight = 130;
+      const fillHeight = (maxHeight * p) / 100;
+      const yPos = 180 - fillHeight;
+      fillRect.setAttribute("y", yPos);
+      fillRect.setAttribute("height", fillHeight);
+    }
+
+    function updateDataDisplay(distance, percent, ip) {
+      document.getElementById("dataDisplay").innerHTML = `
+        <div class="data-item"><span class="icon">📏</span> ${distance} cm</div>
+        <div class="data-item"><span class="icon">📊</span> ${percent.toFixed(1)}%</div>
+        <div class="data-item"><span class="icon">🌐</span> ${ip}</div>`;
+    }
+
+    function showAlertPopup() {
+      const popup = document.getElementById("alertPopup");
+      popup.classList.add("show");
+      setTimeout(() => popup.classList.remove("show"), 6000);
+    }
+
+    function hideAlertPopup() {
+      document.getElementById("alertPopup").classList.remove("show");
+    }
+
+    function showNotification() {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Smart Bin Alert", {
+          body: "Bin is 75% full! Time to empty it.",
+          icon: "icons/icon-192.png"
+        });
+        const audio = new Audio("audio.mp3");
+        audio.play().catch(()=>{});
+      } else if ("Notification" in window && Notification.permission !== "denied") {
+        Notification.requestPermission().then(p => { if(p==="granted") showNotification(); });
+      }
+    }
+
+
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("service-worker.js");
+    }
+
+    connectMqtt();
+  </script>
+</body>
+</html>
