@@ -202,7 +202,7 @@
     }
   </style>
 
-  <script src="https://cdn.jsdelivr.net/npm/paho-mqtt@1.0.4/paho-mqtt.js"></script>
+  <script src="paho-mqtt.js"></script>
 </head>
 <body>
   <h1>Smart Waste Dashboard</h1>
@@ -254,7 +254,7 @@
 
     const topic = "smartbin/office1/level";
     const clientId = "webclient_" + Math.random().toString(16).substr(2, 8);
-    const client = new Paho.MQTT.Client("wss://broker.hivemq.com:8884/mqtt", clientId);
+    const client = new Paho.MQTT.Client("broker.hivemq.com", 8884, "/mqtt", clientId);
 
     client.onConnectionLost = () => {
       document.getElementById("status").innerText = "Connection lost... reconnecting 🔄";
@@ -283,6 +283,7 @@
 
     function connectMqtt() {
       client.connect({
+        useSSL: true,
         onSuccess: () => {
           document.getElementById("status").innerText = "Connected ✅ Subscribed to topic";
           client.subscribe(topic);
